@@ -1,12 +1,11 @@
-from typing import List, Tuple
-from tqdm import tqdm
-
+import math
 import os
+from typing import List, Tuple
+
 import click
 import imageio
-import math
 import numpy as np
-
+from tqdm import tqdm
 
 EARTH_CIRCUMFERENCE_AT_EQUATOR_METERS = 40075016.686
 
