@@ -49,3 +49,5 @@ python main.py \
 --mapbox-token {YOUR_MAPBOX_TOKEN} \
 --high-resolution
 ```
+
+![SF Example](https://raw.githubusercontent.com/mhamas/big-map/main/sf.jpg)
