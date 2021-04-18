@@ -49,5 +49,3 @@ python main.py \
 --mapbox-token {YOUR_MAPBOX_TOKEN} \
 --high-resolution
 ```
-
-![SF Example](./sf_map_example.jpg)
