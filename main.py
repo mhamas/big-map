@@ -10,6 +10,7 @@ import numpy as np
 
 EARTH_CIRCUMFERENCE_AT_EQUATOR_METERS = 40075016.686
 
+
 def haversine_distance(lat1, lon1, lat2, lon2) -> float:
     """
     Shortest distance on a sphere
@@ -25,7 +26,7 @@ def haversine_distance(lat1, lon1, lat2, lon2) -> float:
     dlat_rad = np.radians(lat2) - np.radians(lat1)
     dlon_rad = np.radians(lon2) - np.radians(lon1)
 
-    return(
+    return (
         2
         * 6371
         * 1e3
@@ -38,10 +39,10 @@ def haversine_distance(lat1, lon1, lat2, lon2) -> float:
             )
         )
     )
-    
+
 
 def deg2num(lat_deg, lon_deg, zoom):
-    """ From https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Lon..2Flat._to_tile_numbers_2
+    """From https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Lon..2Flat._to_tile_numbers_2
     Computes tile indices given GPS coordinates and zoom level
     """
     lat_rad = math.radians(lat_deg)
@@ -50,8 +51,9 @@ def deg2num(lat_deg, lon_deg, zoom):
     ytile = int((1.0 - math.asinh(math.tan(lat_rad)) / math.pi) / 2.0 * n)
     return (xtile, ytile)
 
+
 def num2deg(xtile, ytile, zoom):
-    """ From https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Lon..2Flat._to_tile_numbers_2
+    """From https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Lon..2Flat._to_tile_numbers_2
     Returns coordinates of NW corner of the tile
     """
     n = 2.0 ** zoom
@@ -61,20 +63,24 @@ def num2deg(xtile, ytile, zoom):
     return (lat_deg, lon_deg)
 
 
-def compute_zoom_level(lat: float, lon1: float, lon2: float, width_px: int):    
+def compute_zoom_level(lat: float, lon1: float, lon2: float, width_px: int):
     num_tiles = math.ceil(width_px / 256)  # each tile is 256x256px, dictated by mapbox
 
     # Horizontal distance in meters between lon1 and lon2 @ lat
-    horizontal_distance_meters = haversine_distance(lat1=lat, lon1=lon1, lat2=lat, lon2=lon2)
+    horizontal_distance_meters = haversine_distance(
+        lat1=lat, lon1=lon1, lat2=lat, lon2=lon2
+    )
     horizontal_distance_tile_meters = horizontal_distance_meters / num_tiles
 
     # horizontal_distance_tile_meters is  EARTH_CIRCUMFERENCE_AT_EQUATOR_METERS * math.cos(lat) * (2 ** zoom)
     # as per https://wiki.openstreetmap.org/wiki/Zoom_levels
     return math.ceil(
         math.log2(
-            (EARTH_CIRCUMFERENCE_AT_EQUATOR_METERS * math.cos(np.radians(lat))) / horizontal_distance_tile_meters
+            (EARTH_CIRCUMFERENCE_AT_EQUATOR_METERS * math.cos(np.radians(lat)))
+            / horizontal_distance_tile_meters
         )
-    )    
+    )
+
 
 def get_url_of_static_raster_file(
     lat_min_deg: float,
@@ -83,10 +89,11 @@ def get_url_of_static_raster_file(
     lon_max_deg: float,
     token: str,
     style_id: str,
-    high_resolution: bool
+    high_resolution: bool,
 ):
     h = "@2x" if high_resolution else ""
     return f"https://api.mapbox.com/styles/v1/mapbox/{style_id}/static/[{lon_min_deg},{lat_min_deg},{lon_max_deg},{lat_max_deg}]/256x256{h}?access_token={token}&logo=false&attribution=false"
+
 
 @click.command("Create tiled map")
 @click.option(
@@ -172,14 +179,14 @@ def create_map(
         x1, x2 = x2, x1
     if y2 < y1:
         y1, y2 = y2, y1
-    
+
     num_tiles_x = x2 - x1 + 1
     num_tiles_y = y2 - y1 + 1
     num_tiles = num_tiles_x * num_tiles_y
     tile_size = 512 if high_resolution else 256  # this is dictated by mapbox
 
     stitched_image = np.zeros((tile_size * num_tiles_y, tile_size * num_tiles_x, 3))
-    
+
     print(f"Querying for {num_tiles} tiles")
     with tqdm(total=num_tiles) as pbar:
         for x in range(x1, x2 + 1):
@@ -200,16 +207,19 @@ def create_map(
                 )
 
                 img = imageio.imread(url)[:, :, :3]
-                stitched_image[(y - y1) * tile_size : (y - y1 + 1) * tile_size, (x - x1) * tile_size : (x - x1 + 1) * tile_size, :] = img
+                stitched_image[
+                    (y - y1) * tile_size : (y - y1 + 1) * tile_size,
+                    (x - x1) * tile_size : (x - x1 + 1) * tile_size,
+                    :,
+                ] = img
 
                 imageio.imwrite(os.path.join(output_dir, f"{x}_{y}_{zoom}.jpg"), img)
-                
+
                 pbar.update(1)
-    imageio.imwrite(os.path.join(output_dir, "result.jpg"), stitched_image)         
-    
+    imageio.imwrite(os.path.join(output_dir, "result.jpg"), stitched_image)
+
     print("Success 🎉")
 
-    
 
 if __name__ == "__main__":
     create_map()

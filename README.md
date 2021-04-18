@@ -6,10 +6,10 @@ static raster tiles from mapbox that will be stitched together. You will need to
 ## Usage
 
 Clone this repo and run `python -m main.py`. You will need to have the following dependencies installed in your environment.
-- tqdm
-- click
-- imageio
-- numpy
+- `tqdm`
+- `click`
+- `imageio`
+- `numpy`
 
 ## Input
 ```
